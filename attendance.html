@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+<header>
+  <h2>Attendance Scanner</h2>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<main>
+  <section class="attendance-box">
+    <h3>Your Subjects</h3>
+    <table id="attTable">
+      <thead>
+        <tr><th>Subject</th><th>Present</th><th>Total</th><th>%</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="scanner">
+    <h3>Scan QR to Mark Attendance</h3>
+    <div id="reader" style="width:300px"></div>
+  </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
