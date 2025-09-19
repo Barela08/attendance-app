@@ -1,0 +1,89 @@
+// ---------- Initialization ----------
+if (!localStorage.getItem("students")) {
+  localStorage.setItem("students", JSON.stringify([
+    {id:"stu01", name:"Demo Student", email:"demo@uni.com", dept:"CSE", pass:"123", present:10, total:12}
+  ]));
+}
+if (!localStorage.getItem("admin")) {
+  localStorage.setItem("admin", JSON.stringify({user:"admin", pass:"admin123"}));
+}
+
+// ---------- Login ----------
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", e=>{
+    e.preventDefault();
+    const u=document.getElementById("username").value;
+    const p=document.getElementById("password").value;
+    const r=document.getElementById("role").value;
+
+    if (r==="admin") {
+      let admin = JSON.parse(localStorage.getItem("admin"));
+      if (u===admin.user && p===admin.pass) location.href="admin.html";
+      else alert("Invalid Admin Credentials");
+    } else {
+      let stus = JSON.parse(localStorage.getItem("students"));
+      let stu = stus.find(s=>s.id===u && s.pass===p);
+      if (stu) {
+        localStorage.setItem("currentStudent", stu.id);
+        location.href="student.html";
+      } else alert("Invalid Student Credentials");
+    }
+  });
+}
+
+// ---------- Student Dashboard ----------
+if (location.pathname.endsWith("student.html")) {
+  let stus = JSON.parse(localStorage.getItem("students"));
+  let id = localStorage.getItem("currentStudent");
+  let s = stus.find(x=>x.id===id);
+  if (s) {
+    document.getElementById("stuName").textContent = s.name;
+    document.getElementById("stuId").textContent = s.id;
+    document.getElementById("stuEmail").textContent = s.email;
+    document.getElementById("stuDept").textContent = s.dept;
+    document.getElementById("present").textContent = s.present;
+    document.getElementById("total").textContent = s.total;
+    document.getElementById("percent").textContent = ((s.present/s.total)*100).toFixed(1);
+  }
+}
+
+// ---------- Admin Panel ----------
+function renderStudents(){
+  let tbody=document.querySelector("#studentTable tbody");
+  if(!tbody) return;
+  tbody.innerHTML="";
+  JSON.parse(localStorage.getItem("students")).forEach((s,i)=>{
+    tbody.innerHTML+=`<tr>
+      <td>${s.id}</td>
+      <td>${s.name}</td>
+      <td>
+        <button onclick="delStudent(${i})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+function addStudent(){
+  let stus=JSON.parse(localStorage.getItem("students"));
+  let s={
+    id:document.getElementById("newId").value,
+    name:document.getElementById("newName").value,
+    email:document.getElementById("newEmail").value,
+    dept:document.getElementById("newDept").value,
+    pass:document.getElementById("newPass").value,
+    present:0,total:0
+  };
+  stus.push(s);
+  localStorage.setItem("students",JSON.stringify(stus));
+  renderStudents();
+}
+function delStudent(i){
+  let stus=JSON.parse(localStorage.getItem("students"));
+  stus.splice(i,1);
+  localStorage.setItem("students",JSON.stringify(stus));
+  renderStudents();
+}
+if(location.pathname.endsWith("admin.html")) renderStudents();
+
+// ---------- Logout ----------
+function logout(){ location.href="index.html"; }
