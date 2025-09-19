@@ -1,12 +1,14 @@
-// ---------- Initialization ----------
+// ---------- Initial Data ----------
 if (!localStorage.getItem("students")) {
   localStorage.setItem("students", JSON.stringify([
-    {id:"stu01", name:"Demo Student", email:"demo@uni.com", dept:"CSE", pass:"123", present:10, total:12}
+    {id:"stu01", name:"Demo Student", email:"demo@uni.com", dept:"CSE", pass:"123"}
   ]));
 }
 if (!localStorage.getItem("admin")) {
   localStorage.setItem("admin", JSON.stringify({user:"admin", pass:"admin123"}));
 }
+
+const subjects = ["Math","Physics","Chemistry","CSE","English","Elective"];
 
 // ---------- Login ----------
 const loginForm = document.getElementById("loginForm");
@@ -42,9 +44,6 @@ if (location.pathname.endsWith("student.html")) {
     document.getElementById("stuId").textContent = s.id;
     document.getElementById("stuEmail").textContent = s.email;
     document.getElementById("stuDept").textContent = s.dept;
-    document.getElementById("present").textContent = s.present;
-    document.getElementById("total").textContent = s.total;
-    document.getElementById("percent").textContent = ((s.present/s.total)*100).toFixed(1);
   }
 }
 
@@ -57,9 +56,7 @@ function renderStudents(){
     tbody.innerHTML+=`<tr>
       <td>${s.id}</td>
       <td>${s.name}</td>
-      <td>
-        <button onclick="delStudent(${i})">Delete</button>
-      </td>
+      <td><button onclick="delStudent(${i})">Delete</button></td>
     </tr>`;
   });
 }
@@ -71,8 +68,8 @@ function addStudent(){
     email:document.getElementById("newEmail").value,
     dept:document.getElementById("newDept").value,
     pass:document.getElementById("newPass").value,
-    present:0,total:0
-  };
+    attendance:{}};
+  subjects.forEach(sub=> s.attendance[sub]={present:0,total:0,dates:[]});
   stus.push(s);
   localStorage.setItem("students",JSON.stringify(stus));
   renderStudents();
@@ -84,6 +81,64 @@ function delStudent(i){
   renderStudents();
 }
 if(location.pathname.endsWith("admin.html")) renderStudents();
+
+// ---------- Attendance Table ----------
+function renderAttendance(){
+  let id = localStorage.getItem("currentStudent");
+  let stus = JSON.parse(localStorage.getItem("students"));
+  let s = stus.find(x=>x.id===id);
+  if(!s.attendance){
+    s.attendance={};
+    subjects.forEach(sub=> s.attendance[sub]={present:0,total:0,dates:[]});
+  }
+  let tb=document.querySelector("#attTable tbody");
+  if(tb){
+    tb.innerHTML="";
+    subjects.forEach(sub=>{
+      let a=s.attendance[sub];
+      let percent = a.total?((a.present/a.total)*100).toFixed(1):0;
+      tb.innerHTML+=`<tr><td>${sub}</td><td>${a.present}</td><td>${a.total}</td><td>${percent}%</td></tr>`;
+    });
+  }
+  localStorage.setItem("students",JSON.stringify(stus));
+}
+
+// ---------- QR Scanner ----------
+if(document.getElementById("reader")){
+  const html5QrCode = new Html5Qrcode("reader");
+  Html5Qrcode.getCameras().then(devices=>{
+    if(devices.length){
+      html5QrCode.start(devices[0].id,
+        {fps:10, qrbox:250},
+        qr=>{
+          try{
+            let data=JSON.parse(qr);
+            markAttendance(data.sub, data.date);
+            alert(`Attendance marked for ${data.sub}`);
+            html5QrCode.stop();
+            renderAttendance();
+          }catch(e){alert("Invalid QR");}
+        });
+    }
+  });
+}
+
+function markAttendance(sub,date){
+  let id = localStorage.getItem("currentStudent");
+  let stus = JSON.parse(localStorage.getItem("students"));
+  let s = stus.find(x=>x.id===id);
+  if(!s.attendance[sub]) s.attendance[sub]={present:0,total:0,dates:[]};
+  if(!s.attendance[sub].dates.includes(date)){
+    s.attendance[sub].present++;
+    s.attendance[sub].total++;
+    s.attendance[sub].dates.push(date);
+  }else{
+    alert("Already marked for this date");
+  }
+  localStorage.setItem("students",JSON.stringify(stus));
+}
+
+if(location.pathname.endsWith("attendance.html")) renderAttendance();
 
 // ---------- Logout ----------
 function logout(){ location.href="index.html"; }
