@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h2>Admin Panel</h2>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <main>
+    <h3>Add Student</h3>
+    <input type="text" id="newName" placeholder="Name">
+    <input type="text" id="newId" placeholder="User ID">
+    <input type="email" id="newEmail" placeholder="Email">
+    <input type="text" id="newDept" placeholder="Department">
+    <input type="password" id="newPass" placeholder="Password">
+    <button onclick="addStudent()">Add</button>
+
+    <h3>Student List</h3>
+    <table id="studentTable">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Action</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+<script src="script.js"></script>
+</body>
+</html>
