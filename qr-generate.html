@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generate Attendance QR</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+<header>
+  <h2>QR Generator (Teacher)</h2>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<main class="attendance-box">
+  <h3>Create QR for Attendance</h3>
+  <input id="teacher" placeholder="Teacher Name">
+  <input id="subject" placeholder="Subject">
+  <input type="date" id="date">
+  <button onclick="makeQR()">Generate</button>
+  <canvas id="qrCanvas" style="margin-top:15px;"></canvas>
+</main>
+
+<script>
+function makeQR(){
+  let data = {
+    sub: document.getElementById('subject').value,
+    date: document.getElementById('date').value,
+    teacher: document.getElementById('teacher').value
+  };
+  new QRious({
+    element: document.getElementById('qrCanvas'),
+    value: JSON.stringify(data),
+    size: 250
+  });
+}
+</script>
+</body>
+</html>
