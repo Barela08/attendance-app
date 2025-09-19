@@ -1,144 +1,107 @@
-// ---------- Initial Data ----------
-if (!localStorage.getItem("students")) {
-  localStorage.setItem("students", JSON.stringify([
-    {id:"stu01", name:"Demo Student", email:"demo@uni.com", dept:"CSE", pass:"123"}
-  ]));
-}
-if (!localStorage.getItem("admin")) {
-  localStorage.setItem("admin", JSON.stringify({user:"admin", pass:"admin123"}));
+// === Seed Admin ===
+if(!localStorage.getItem("admin")){
+  localStorage.setItem("admin", JSON.stringify({user:"admin",pass:"admin123"}));
 }
 
-const subjects = ["Math","Physics","Chemistry","CSE","English","Elective"];
+// === LOGIN ===
+function login(){
+  const role = document.getElementById("role").value;
+  const id   = document.getElementById("username").value;
+  const pw   = document.getElementById("password").value;
 
-// ---------- Login ----------
-const loginForm = document.getElementById("loginForm");
-if (loginForm) {
-  loginForm.addEventListener("submit", e=>{
-    e.preventDefault();
-    const u=document.getElementById("username").value;
-    const p=document.getElementById("password").value;
-    const r=document.getElementById("role").value;
-
-    if (r==="admin") {
-      let admin = JSON.parse(localStorage.getItem("admin"));
-      if (u===admin.user && p===admin.pass) location.href="admin.html";
-      else alert("Invalid Admin Credentials");
-    } else {
-      let stus = JSON.parse(localStorage.getItem("students"));
-      let stu = stus.find(s=>s.id===u && s.pass===p);
-      if (stu) {
-        localStorage.setItem("currentStudent", stu.id);
-        location.href="student.html";
-      } else alert("Invalid Student Credentials");
-    }
-  });
-}
-
-// ---------- Student Dashboard ----------
-if (location.pathname.endsWith("student.html")) {
-  let stus = JSON.parse(localStorage.getItem("students"));
-  let id = localStorage.getItem("currentStudent");
-  let s = stus.find(x=>x.id===id);
-  if (s) {
-    document.getElementById("stuName").textContent = s.name;
-    document.getElementById("stuId").textContent = s.id;
-    document.getElementById("stuEmail").textContent = s.email;
-    document.getElementById("stuDept").textContent = s.dept;
+  if(role==="admin"){
+    let a = JSON.parse(localStorage.getItem("admin"));
+    if(id===a.user && pw===a.pass){
+      window.location='admin.html';
+    }else alert("Wrong admin ID/password");
+  }else{
+    let list = JSON.parse(localStorage.getItem("students")||"[]");
+    let s = list.find(x=>x.id===id && x.pass===pw);
+    if(s){ localStorage.setItem("currentStudent",id); location.reload();}
+    else alert("Invalid student");
   }
 }
 
-// ---------- Admin Panel ----------
-function renderStudents(){
-  let tbody=document.querySelector("#studentTable tbody");
-  if(!tbody) return;
-  tbody.innerHTML="";
-  JSON.parse(localStorage.getItem("students")).forEach((s,i)=>{
-    tbody.innerHTML+=`<tr>
-      <td>${s.id}</td>
-      <td>${s.name}</td>
-      <td><button onclick="delStudent(${i})">Delete</button></td>
-    </tr>`;
-  });
-}
+// === Student Panel ===
+window.addEventListener("load",()=>{
+  const panel=document.getElementById("student-panel");
+  if(panel){
+    let id=localStorage.getItem("currentStudent");
+    if(id){
+      let list=JSON.parse(localStorage.getItem("students")||"[]");
+      let s=list.find(x=>x.id===id);
+      if(s){
+        document.getElementById("welcome").innerText=`Welcome, ${s.name}`;
+        const tbl=document.getElementById("student-info");
+        tbl.innerHTML=`<tr><th>ID</th><td>${s.id}</td></tr>
+                       <tr><th>Name</th><td>${s.name}</td></tr>`;
+      }
+    }
+  }
+});
+
+// === Admin: add/delete ===
 function addStudent(){
-  let stus=JSON.parse(localStorage.getItem("students"));
-  let s={
-    id:document.getElementById("newId").value,
-    name:document.getElementById("newName").value,
-    email:document.getElementById("newEmail").value,
-    dept:document.getElementById("newDept").value,
-    pass:document.getElementById("newPass").value,
-    attendance:{}};
-  subjects.forEach(sub=> s.attendance[sub]={present:0,total:0,dates:[]});
-  stus.push(s);
-  localStorage.setItem("students",JSON.stringify(stus));
-  renderStudents();
+  let list=JSON.parse(localStorage.getItem("students")||"[]");
+  list.push({id:studId.value,name:studName.value,pass:studPass.value,att:{}});
+  localStorage.setItem("students",JSON.stringify(list));
+  alert("Student Added");
+  renderStudentList();
+}
+
+function renderStudentList(){
+  const tbl=document.getElementById("studentList");
+  if(!tbl) return;
+  let list=JSON.parse(localStorage.getItem("students")||"[]");
+  tbl.innerHTML="<tr><th>ID</th><th>Name</th><th>Action</th></tr>"+
+    list.map((s,i)=>`<tr><td>${s.id}</td><td>${s.name}</td>
+    <td><button onclick="delStudent(${i})">Delete</button></td></tr>`).join("");
 }
 function delStudent(i){
-  let stus=JSON.parse(localStorage.getItem("students"));
-  stus.splice(i,1);
-  localStorage.setItem("students",JSON.stringify(stus));
-  renderStudents();
+  let list=JSON.parse(localStorage.getItem("students")||"[]");
+  list.splice(i,1);
+  localStorage.setItem("students",JSON.stringify(list));
+  renderStudentList();
 }
-if(location.pathname.endsWith("admin.html")) renderStudents();
+renderStudentList();
 
-// ---------- Attendance Table ----------
-function renderAttendance(){
-  let id = localStorage.getItem("currentStudent");
-  let stus = JSON.parse(localStorage.getItem("students"));
-  let s = stus.find(x=>x.id===id);
-  if(!s.attendance){
-    s.attendance={};
-    subjects.forEach(sub=> s.attendance[sub]={present:0,total:0,dates:[]});
-  }
-  let tb=document.querySelector("#attTable tbody");
-  if(tb){
-    tb.innerHTML="";
-    subjects.forEach(sub=>{
-      let a=s.attendance[sub];
-      let percent = a.total?((a.present/a.total)*100).toFixed(1):0;
-      tb.innerHTML+=`<tr><td>${sub}</td><td>${a.present}</td><td>${a.total}</td><td>${percent}%</td></tr>`;
-    });
-  }
-  localStorage.setItem("students",JSON.stringify(stus));
-}
+// === QR Scanner ===
+function startScanner(){
+  if(!document.getElementById("preview")) return;
+  const video=document.getElementById("preview");
+  navigator.mediaDevices.getUserMedia({
+    video:{ facingMode:{ exact:"environment" } }
+  }).then(stream=>video.srcObject=stream);
 
-// ---------- QR Scanner ----------
-if(document.getElementById("reader")){
-  const html5QrCode = new Html5Qrcode("reader");
-  Html5Qrcode.getCameras().then(devices=>{
-    if(devices.length){
-      html5QrCode.start(devices[0].id,
-        {fps:10, qrbox:250},
-        qr=>{
-          try{
-            let data=JSON.parse(qr);
-            markAttendance(data.sub, data.date);
-            alert(`Attendance marked for ${data.sub}`);
-            html5QrCode.stop();
-            renderAttendance();
-          }catch(e){alert("Invalid QR");}
-        });
+  const html5QrCode = new Html5Qrcode("preview");
+  html5QrCode.start(
+    { facingMode:"environment" },
+    { fps:10, qrbox:250 },
+    (decoded)=>{
+       document.getElementById("result").innerText="Scanned: "+decoded;
+       markAttendance(decoded);
     }
+  );
+}
+
+function markAttendance(data){
+  let [sub,date]=data.split("|");
+  let id=localStorage.getItem("currentStudent");
+  let list=JSON.parse(localStorage.getItem("students")||"[]");
+  let s=list.find(x=>x.id===id);
+  if(!s.att[sub]) s.att[sub]={};
+  s.att[sub][date]=true;
+  localStorage.setItem("students",JSON.stringify(list));
+  alert(`Attendance marked for ${sub} on ${date}`);
+}
+
+// === QR Generator ===
+function generateQR(){
+  const sub=document.getElementById("subject").value;
+  const dt=document.getElementById("date").value;
+  const teacher=document.getElementById("teacher").value;
+  const text=`${sub}|${dt}|${teacher}`;
+  QRCode.toCanvas(document.getElementById('qrcode'), text, function (error) {
+    if (error) console.error(error)
   });
 }
-
-function markAttendance(sub,date){
-  let id = localStorage.getItem("currentStudent");
-  let stus = JSON.parse(localStorage.getItem("students"));
-  let s = stus.find(x=>x.id===id);
-  if(!s.attendance[sub]) s.attendance[sub]={present:0,total:0,dates:[]};
-  if(!s.attendance[sub].dates.includes(date)){
-    s.attendance[sub].present++;
-    s.attendance[sub].total++;
-    s.attendance[sub].dates.push(date);
-  }else{
-    alert("Already marked for this date");
-  }
-  localStorage.setItem("students",JSON.stringify(stus));
-}
-
-if(location.pathname.endsWith("attendance.html")) renderAttendance();
-
-// ---------- Logout ----------
-function logout(){ location.href="index.html"; }
