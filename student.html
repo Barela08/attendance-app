@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h2 id="stuName"></h2>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <main>
+    <section>
+      <h3>Student Details</h3>
+      <p>ID: <span id="stuId"></span></p>
+      <p>Email: <span id="stuEmail"></span></p>
+      <p>Department: <span id="stuDept"></span></p>
+    </section>
+
+    <section>
+      <h3>Attendance</h3>
+      <p>Present Days: <span id="present"></span></p>
+      <p>Total Classes: <span id="total"></span></p>
+      <p>Percentage: <span id="percent"></span>%</p>
+    </section>
+  </main>
+<script src="script.js"></script>
+</body>
+</html>
